@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+  <div class="bg-white p-4 rounded shadow-sm">
+    <h2 class="fw-bold mb-4 text-center">Confirm Your Order</h2>
+
+    <form method="POST" action="{{ url_for('submit_order') }}">
+      <input type="hidden" name="name" value="{{ request.args.get('name', '') }}">
+      <input type="hidden" name="phone" value="{{ request.args.get('phone', '') }}">
+      <input type="hidden" name="address" value="{{ request.args.get('address', '') }}">
+      <input type="hidden" name="merchant_id" value="{{ request.args.get('merchant_id', '') }}">
+      <input type="hidden" name="items" value="{{ request.args.get('items', '') }}">
+      <input type="hidden" name="total" value="{{ request.args.get('total', '') }}">
+
+      <p><strong>Name:</strong> {{ request.args.get('name', '') }}</p>
+      <p><strong>Phone:</strong> {{ request.args.get('phone', '') }}</p>
+      <p><strong>Address:</strong> {{ request.args.get('address', '') }}</p>
+      <p><strong>Merchant:</strong> {{ request.args.get('merchant_id', '') }}</p>
+      <p><strong>Items:</strong><br> {{ request.args.get('items', '')|replace('\n', '<br>')|safe }}</p>
+      <p><strong>Total:</strong> £{{ request.args.get('total', '0.00') }}</p>
+
+      <button type="submit" class="btn btn-success w-100">Confirm and Place Order</button>
+      <a href="{{ url_for('place_order') }}" class="btn btn-outline-secondary w-100 mt-2">Go Back</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

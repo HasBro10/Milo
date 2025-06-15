@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4 px-3 px-md-5" style="background-color: #f8f9fa;">
+  <!-- Existing header and merchant stats remain unchanged -->
+  <div class="mb-4">
+    {% if session['user']['role'] == 'merchant' %}
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+          <div class="card-body text-center">
+            <h6 class="text-muted">Today’s Orders</h6>
+            <h2 class="fw-bold">{{ today_order_count }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+          <div class="card-body text-center">
+            <h6 class="text-muted">Today’s Earnings</h6>
+            <h2 class="fw-bold">£{{ '%.2f'|format(today_earnings) }}</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <h2 class="fw-bold">
+      {% if session['user']['role'] == 'merchant' %}
+        Merchant Orders
+      {% else %}
+        Your Orders
+      {% endif %}
+    </h2>
+    <div class="d-flex flex-wrap gap-2 small mt-2">
+      <span class="text-muted"><strong>{{ user.email }}</strong></span>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">Dashboard</a>
+      <a href="{{ url_for('place_order') }}" class="btn btn-outline-primary btn-sm">Place Order</a>
+      <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+    </div>
+  </div>
+
+  {% if orders %}
+  <div class="bg-white rounded shadow-sm p-3 p-md-4 mb-5">
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Placed On</th>
+            {% if session['user']['role'] == 'merchant' %}
+              <th>Action</th>
+            {% else %}
+              <th>Reorder</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td>{{ order.get('name', '—') }}</td>
+            <td>{{ order.get('phone', '—') }}</td>
+            <td>{{ order.get('address', '—') }}</td>
+            <td style="white-space: pre-wrap;">
+              {% for item in order.get('items', []) %}
+                • {{ item['name'] }} x{{ item['quantity'] }}<br>
+              {% endfor %}
+            </td>
+            <td>
+              {% if 'total' in order %}
+                £{{ '%.2f'|format(order['total']|float) }}
+              {% else %} — {% endif %}
+            </td>
+            <td>
+              {% if order.get('status') == 'Paid' %}
+                <span class="badge bg-warning text-dark">Paid</span>
+              {% elif order.get('status') == 'Pending' %}
+                <span class="badge bg-secondary">Pending</span>
+              {% else %}
+                {{ order.get('status', '—') }}
+              {% endif %}
+            </td>
+            <td>{{ order.get('created_at_str') or '—' }}</td>
+            {% if session['user']['role'] == 'merchant' %}
+            <td>
+              <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}">
+                <select name="status" class="form-select form-select-sm mb-2">
+                  <option value="Pending" {% if order.get('status') == 'Pending' %}selected{% endif %}>Pending</option>
+                  <option value="Paid" {% if order.get('status') == 'Paid' %}selected{% endif %}>Paid</option>
+                </select>
+                <button type="submit" class="btn btn-success btn-sm w-100">Update</button>
+              </form>
+            </td>
+            {% endif %}
+            {% if session['user']['role'] != 'merchant' %}
+            <td>
+              <a href="{{ url_for('view_order', order_id=order.id) }}" class="btn btn-sm btn-outline-secondary w-100 mb-1">🔍 View</a>
+              <a href="{{ url_for('reorder', order_id=order.id) }}" class="btn btn-sm btn-outline-primary w-100">Reorder</a>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-info">No orders found.</div>
+  {% endif %}
+
+  {% if session['user']['role'] == 'merchant' %}
+  <div class="mt-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+      <h2 class="fw-bold mb-0">Your Menu</h2>
+      <a href="{{ url_for('upload_menu') }}" class="btn btn-primary btn-sm">Upload Menu</a>
+    </div>
+
+    {% if menu_items %}
+    {% set categories = menu_items | groupby('category') %}
+    <div class="bg-white rounded shadow-sm p-3 p-md-4" style="max-height: 600px; overflow-y: auto;">
+      {% for category, items in categories %}
+        <h5 class="mt-4 fw-semibold">{{ category if category else 'Uncategorized' }}</h5>
+
+        <!-- Add Item Form -->
+        <form method="POST" action="{{ url_for('add_menu_item') }}" class="mb-4">
+          <input type="hidden" name="category" value="{{ category }}">
+          <div class="row g-2">
+            <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm" placeholder="Name" required></div>
+            <div class="col-md-2"><input type="number" name="price" class="form-control form-control-sm" placeholder="Price" step="0.01" required></div>
+            <div class="col-md-4"><input type="text" name="description" class="form-control form-control-sm" placeholder="Description"></div>
+            <div class="col-md-2"><input type="text" name="option" class="form-control form-control-sm" placeholder="Option"></div>
+            <div class="col-md-1"><button type="submit" class="btn btn-sm btn-success w-100">Add</button></div>
+          </div>
+        </form>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped mb-4">
+            <thead class="table-light">
+              <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Description</th>
+                <th>Option</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items | sort(attribute='position') %}
+              <tr>
+                <td>{{ item.name }}</td>
+                <td>£{{ "%.2f"|format(item.price) if item.price is not none else '—' }}</td>
+                <td>{{ item.description or '—' }}</td>
+                <td>{{ item.option or '—' }}</td>
+                <td class="d-flex gap-1 flex-wrap">
+                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleEdit('{{ item.id }}')">Edit</button>
+                  <form method="POST" action="{{ url_for('delete_menu_item', item_id=item.id) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this item?')">Delete</button>
+                  </form>
+                  <form method="POST" action="{{ url_for('move_menu_item', item_id=item.id) }}">
+                    <input type="hidden" name="direction" value="up">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">⬆️</button>
+                  </form>
+                  <form method="POST" action="{{ url_for('move_menu_item', item_id=item.id) }}">
+                    <input type="hidden" name="direction" value="down">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">⬇️</button>
+                  </form>
+                </td>
+              </tr>
+              <!-- Edit Form Row (Initially Hidden) -->
+              <tr id="edit-row-{{ item.id }}" style="display: none;">
+                <td colspan="5">
+                  <form method="POST" action="{{ url_for('edit_menu_item', item_id=item.id) }}">
+                    <div class="row g-2">
+                      <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm" value="{{ item.name }}" required></div>
+                      <div class="col-md-2"><input type="number" name="price" class="form-control form-control-sm" value="{{ item.price }}" step="0.01" required></div>
+                      <div class="col-md-4"><input type="text" name="description" class="form-control form-control-sm" value="{{ item.description }}"></div>
+                      <div class="col-md-2"><input type="text" name="option" class="form-control form-control-sm" value="{{ item.option }}"></div>
+                      <div class="col-md-1"><button type="submit" class="btn btn-sm btn-success w-100">Save</button></div>
+                    </div>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-warning mt-3">No menu items yet.</div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function toggleEdit(itemId) {
+    const row = document.getElementById('edit-row-' + itemId);
+    row.style.display = row.style.display === 'none' ? '' : 'none';
+  }
+</script>
+{% endblock %}

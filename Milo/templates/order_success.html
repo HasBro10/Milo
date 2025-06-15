@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 text-center" style="max-width: 600px;">
+  <h2 class="mb-3 text-success">🎉 Order Confirmed!</h2>
+  <p class="lead">Thank you, <strong>{{ name }}</strong>.</p>
+  <p>Your order has been placed and is being processed.</p>
+  <p class="text-muted">We'll keep you updated by message or phone.</p>
+
+  <a href="{{ url_for('dashboard') }}" class="btn btn-primary mt-4">Go to Dashboard</a>
+</div>
+
+<script>
+  // ✅ This will now reliably run on page load
+  window.onload = function () {
+    const fields = ['name', 'address', 'phone', 'items', 'total', 'merchant_id'];
+    fields.forEach(field => localStorage.removeItem(field));
+  };
+</script>
+{% endblock %}

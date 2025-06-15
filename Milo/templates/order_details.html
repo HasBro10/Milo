@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 600px;">
+
+  <div class="text-center mb-4">
+    {% if order.merchant_image %}
+      <img src="{{ order.merchant_image }}" alt="Merchant Logo" class="rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
+    {% endif %}
+    <h4 class="fw-bold text-uppercase text-muted small">Your meal from</h4>
+    <h2 class="fw-bold">{{ order.merchant_name or '—' }}</h2>
+  </div>
+
+  <!-- ✅ Order Status Tracker -->
+  {% set status_steps = ['Pending', 'Preparing', 'Out for Delivery', 'Delivered'] %}
+  {% set current_index = status_steps.index(order.status) if order.status in status_steps else 0 %}
+  <div class="mb-4">
+    <div class="progress" style="height: 20px;">
+      {% for step in status_steps %}
+        {% set step_index = loop.index0 %}
+        {% if step_index <= current_index %}
+          <div class="progress-bar bg-success" role="progressbar" style="width: 25%;">
+            {{ step }}
+          </div>
+        {% else %}
+          <div class="progress-bar bg-light text-dark" role="progressbar" style="width: 25%;">
+            {{ step }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="fw-bold mb-3">🧾 Order Summary</h5>
+      <ul class="list-group mb-3">
+        {% for item in order['items'] %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            <div><strong>{{ item['quantity'] }}x {{ item['name'] }}</strong></div>
+            {% if item.get('description') %}
+              <div class="text-muted small">{{ item['description'] }}</div>
+            {% endif %}
+          </div>
+          <div class="fw-bold">£{{ '%.2f'|format(item.get('price', 0) * item.get('quantity', 1)) }}</div>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <div class="d-flex justify-content-between mb-2">
+        <strong>Total:</strong>
+        <strong>£{{ '%.2f'|format(order.total) }}</strong>
+      </div>
+
+      <div class="text-muted small">
+        {% if order.status == 'Paid' %}
+          ✅ <strong>Paid</strong>
+        {% elif order.status == 'Pending' %}
+          ⏳ <strong>Payment Pending</strong>
+        {% else %}
+          {{ order.status }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h6 class="fw-bold mb-2">Delivery To</h6>
+      <p class="mb-1">{{ order.address or '—' }}</p>
+
+      {% if order.created_at_str %}
+        <p class="text-muted small mb-0">Placed on: {{ order.created_at_str }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <a href="{{ url_for('place_order', reorder_id=order.order_id) }}" class="btn btn-primary w-100 mt-4">🔁 Reorder This</a>
+
+</div>
+{% endblock %}

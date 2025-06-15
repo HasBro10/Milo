@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="background: #f8f9fa; padding: 40px 0;">
+  <div style="background: white; padding: 30px; margin: auto; max-width: 1200px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); overflow-x: auto;">
+    <h2 class="mb-4">Your Orders</h2>
+    {% if orders %}
+      {% set show_customer_info = False %}
+      {% set show_actions = False %}
+      {% include 'partials/order_table.html' with context %}
+    {% else %}
+      <p>No orders found.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

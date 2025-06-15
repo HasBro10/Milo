@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Menu</h2>
+
+  {% if menu_items %}
+  <table class="table table-bordered table-striped">
+    <thead class="table-light">
+      <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price (£)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in menu_items %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ item.category }}</td>
+        <td>£{{ '%.2f'|format(item.price) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No menu items found.</p>
+  {% endif %}
+</div>
+{% endblock %}

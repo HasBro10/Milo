@@ -1,0 +1,69 @@
+<!-- Fix: White background and table always match -->
+<div style="width: 100%; background: white; padding: 30px; box-shadow: 0 0 10px rgba(0,0,0,0.05); border-radius: 10px; overflow-x: auto;">
+
+  <table class="table table-bordered table-striped mb-0" style="width: 1000px; margin: auto;">
+    <thead class="table-light">
+      <tr>
+        {% if user.role == 'merchant' %}
+  <th>Order #</th>
+{% else %}
+  <th>Merchant</th>
+{% endif %}
+        {% if show_customer_info %}
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Address</th>
+        {% endif %}
+        <th>Items</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Placed On</th>
+        {% if show_actions %}
+          <th>Action</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td>{{ order.get('custom_id', order.id) }}</td>
+        {% if show_customer_info %}
+          <td>{{ order.name }}</td>
+          <td>{{ order.phone }}</td>
+          <td>{{ order.address }}</td>
+        {% endif %}
+        <td>
+          {% for item in order.get('items', []) %}
+            {{ item.name }} x{{ item.quantity }}<br>
+          {% endfor %}
+        </td>
+        <td>£{{ order.total }}</td>
+        <td>
+          {% if order.status == 'Paid' %}
+            <span class="badge bg-success">Paid</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">{{ order.status|capitalize }}</span>
+          {% endif %}
+        </td>
+        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '—' }}</td>
+        {% if show_actions %}
+          <td>
+            <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}">
+              <input type="hidden" name="order_id" value="{{ order.id }}">
+              <select name="new_status" class="form-select form-select-sm mb-2" style="min-width: 160px;">
+                <option value="Pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="Preparing" {% if order.status == 'preparing' %}selected{% endif %}>Preparing</option>
+                <option value="Out for Delivery" {% if order.status == 'out for delivery' %}selected{% endif %}>Out for Delivery</option>
+                <option value="Delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                <option value="Paid" {% if order.status == 'paid' %}selected{% endif %}>Paid</option>
+              </select>
+              <button type="submit" class="btn btn-sm btn-success">Update</button>
+            </form>
+          </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>

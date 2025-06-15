@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="background: white; padding: 30px; margin: 40px auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); max-width: 1200px; overflow-x: auto;">
+  <h2 class="mb-4">Merchants</h2>
+
+  {% if merchants %}
+  <table class="table table-bordered table-striped" style="min-width: 900px; width: 100%;">
+    <thead class="table-light">
+      <tr>
+        <th>Email</th>
+        <th>User ID</th>
+        <th>Created At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for merchant in merchants %}
+      <tr>
+        <td>{{ merchant.email }}</td>
+        <td>{{ merchant.id }}</td>
+        <td>{{ merchant.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No merchants found.</p>
+  {% endif %}
+</div>
+{% endblock %}

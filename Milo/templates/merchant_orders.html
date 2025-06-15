@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); overflow-x: auto; max-width: 1200px; margin: 50px auto;">
+  <h2 class="mb-4">Merchant Orders</h2>
+  <a href="{{ url_for('upload_menu') }}" class="btn btn-primary mb-3">Upload Menu</a>
+  {% if orders %}
+    {% set show_customer_info = True %}
+    {% set show_actions = True %}
+    {% include 'partials/order_table.html' with context %}
+  {% else %}
+    <p>No orders found for this merchant.</p>
+  {% endif %}
+</div>
+{% endblock %}

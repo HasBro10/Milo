@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">View Menu</h2>
+
+  {% if menu_items %}
+  <table class="table table-bordered table-striped">
+    <thead class="table-light">
+      <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price (£)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in menu_items %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ item.category }}</td>
+        <td>£{{ '%.2f'|format(item.price) }}</td>
+        <td>
+          <a href="{{ url_for('edit_menu_item', item_id=item.id) }}" class="btn btn-sm btn-warning">Edit</a>
+          <form method="POST" action="{{ url_for('delete_menu_item', item_id=item.id) }}" style="display:inline-block;">
+            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this item?');">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No menu items found.</p>
+  {% endif %}
+</div>
+{% endblock %}
