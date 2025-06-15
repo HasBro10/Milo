@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import firebase_admin
-from firebase_admin import credentials, firestore, auth
+from firebase_admin import credentials, firestore, auth, storage
 import datetime
 from werkzeug.utils import secure_filename
 import openai
@@ -21,7 +21,9 @@ app.secret_key = 'your_secret_key_here'
 # Firebase setup
 firebase_key_path = os.getenv('FIREBASE_KEY_PATH', 'firebase_key.json')
 cred = credentials.Certificate(firebase_key_path)
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'chat2order-bucket'
+})
 db = firestore.client()
 
 @app.route('/')
@@ -169,44 +171,45 @@ def dashboard():
         today_order_count=today_order_count if role == 'merchant' else 0,
         today_earnings=today_earnings if role == 'merchant' else 0
     )
+
 @app.route('/add_menu_item', methods=['POST'])
 def add_menu_item():
     if 'user' not in session or session['user']['role'] != 'merchant':
-        flash('Access denied.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('login'))
 
     user_id = session['user']['id']
+    category = request.form.get('category', '').strip()
     name = request.form.get('name', '').strip()
     price = float(request.form.get('price', 0))
     description = request.form.get('description', '').strip()
     option = request.form.get('option', '').strip()
-    category = request.form.get('category', 'Uncategorized').strip()
+    image = request.files.get('image')
 
-    # ✅ Position based on how many items are already in this category
-    try:
-        menu_ref = db.collection('merchants').document(user_id).collection('menu')
-        existing_items = menu_ref.where('category', '==', category).stream()
-        position = len(list(existing_items))
-    except Exception as e:
-        position = int(datetime.datetime.now().timestamp())  # fallback
+    image_url = None
+    if image and image.filename != '':
+        filename = secure_filename(image.filename)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        storage_path = f'menu_images/{user_id}/{timestamp}_{filename}'
 
-    new_item = {
+        bucket = firebase_admin.storage.bucket()
+        blob = bucket.blob(storage_path)
+        blob.upload_from_file(image.stream, content_type=image.content_type)
+        image_url = blob.public_url
+
+    item_data = {
         'name': name,
         'price': price,
         'description': description,
         'option': option,
         'category': category,
-        'position': position,
-        'type': 'menu_item'
+        'position': int(datetime.datetime.utcnow().timestamp())
+        'image_url': image_url
     }
 
-    try:
-        db.collection('merchants').document(user_id).collection('menu').add(new_item)
-        flash('Menu item added successfully.', 'success')
-    except Exception as e:
-        flash(f'Error adding item: {e}', 'danger')
-
+    db.collection('merchants').document(user_id).collection('menu').add(item_data)
+    flash('Menu item added successfully.')
     return redirect(url_for('dashboard'))
+
 
 @app.route('/delete_menu_item/<item_id>', methods=['POST'])
 def delete_menu_item(item_id):
