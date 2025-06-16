@@ -175,6 +175,9 @@ def dashboard():
     elif role == 'customer':
         orders = [doc.to_dict() | {'id': doc.id} for doc in db.collection('orders').where('customer_id', '==', user_id).stream()]
 
+    for item in items:
+        print("Item:", item.to_dict())
+
     return render_template(
         'dashboard.html',
         orders=orders,
