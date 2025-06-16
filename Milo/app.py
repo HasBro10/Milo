@@ -207,7 +207,9 @@ def add_menu_item():
         bucket = firebase_admin.storage.bucket()
         blob = bucket.blob(storage_path)
         blob.upload_from_file(image.stream, content_type=image.content_type)
-        image_url = blob.public_url
+        import urllib.parse  # ← Add this at the top of your file if not already there
+
+        image_url = f"https://firebasestorage.googleapis.com/v0/b/{bucket.name}/o/{urllib.parse.quote_plus(blob.name)}?alt=media"
 
     item_data = {
         'name': name,
