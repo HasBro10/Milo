@@ -22,7 +22,7 @@ app.secret_key = 'your_secret_key_here'
 firebase_key_path = os.getenv('FIREBASE_KEY_PATH', 'firebase_key.json')
 cred = credentials.Certificate(firebase_key_path)
 firebase_admin.initialize_app(cred, {
-    'storageBucket': 'chat2order-632e9.appspot.com'
+    'storageBucket': 'chat2order-632e9.firebasestorage.app'
 })
 db = firestore.client()
 
@@ -155,7 +155,20 @@ def dashboard():
 
             menu_ref = merchant_ref.collection('menu')
             menu_docs = menu_ref.order_by('position').stream()
-            menu_items = [{**doc.to_dict(), 'id': doc.id} for doc in menu_docs]
+            menu_items = []
+
+            for doc in menu_docs:
+                item = doc.to_dict()
+                item['id'] = doc.id
+                if isinstance(item.get('position'), int):
+                    menu_items.append(item)
+                else:
+                    item['position'] = 0  # fallback if position is missing or invalid
+                    menu_items.append(item)
+
+            # Optional: sort again to guarantee clean ordering
+            menu_items.sort(key=lambda x: x['position'])
+
         else:
             flash('Merchant profile not found.')
 
