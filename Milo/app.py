@@ -202,7 +202,7 @@ def add_menu_item():
         'description': description,
         'option': option,
         'category': category,
-        'position': int(datetime.datetime.utcnow().timestamp())
+        'position': int(datetime.datetime.utcnow().timestamp()),
         'image_url': image_url
     }
 
