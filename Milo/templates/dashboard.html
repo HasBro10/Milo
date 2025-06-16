@@ -157,7 +157,7 @@
                 <td>{{ item.name }}</td>
                 <td>
                   {% if item.image_url %}
-                    <img src="{{ item.image_url }}" alt="{{ item.name }}" style="max-height: 100px;">
+                    <img src="{{ item.image_url }}" alt="{{ item.name }}" style="max-height: 100px; max-width: 100px; object-fit: contain;">
                   {% else %}
                     —
                   {% endif %}

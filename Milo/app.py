@@ -22,7 +22,7 @@ app.secret_key = 'your_secret_key_here'
 firebase_key_path = os.getenv('FIREBASE_KEY_PATH', 'firebase_key.json')
 cred = credentials.Certificate(firebase_key_path)
 firebase_admin.initialize_app(cred, {
-    'storageBucket': 'chat2order-632e9.appspot.com'
+    'storageBucket': 'chat2order-bucket.appspot.com'
 })
 db = firestore.client()
 
