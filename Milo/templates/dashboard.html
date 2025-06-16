@@ -152,7 +152,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for item in items | sort(attribute='position') %}
+              {% for item in menu_items | sort(attribute='position') %}
               <tr>
                 <td>{{ item.name }}</td>
                   <td>

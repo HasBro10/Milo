@@ -22,7 +22,7 @@ app.secret_key = 'your_secret_key_here'
 firebase_key_path = os.getenv('FIREBASE_KEY_PATH', 'firebase_key.json')
 cred = credentials.Certificate(firebase_key_path)
 firebase_admin.initialize_app(cred, {
-    'storageBucket': 'chat2order-632e9.firebasestorage.app'
+    'storageBucket': 'chat2order-632e9.appspot.com'
 })
 db = firestore.client()
 
@@ -175,8 +175,10 @@ def dashboard():
     elif role == 'customer':
         orders = [doc.to_dict() | {'id': doc.id} for doc in db.collection('orders').where('customer_id', '==', user_id).stream()]
 
+    items = [doc.to_dict() | {'id': doc.id} for doc in db.collection('merchants').document(user_id).collection('menu').stream()]
     for item in items:
-        print("Item:", item.to_dict())
+
+        print("Item:", item)
 
     return render_template(
         'dashboard.html',
